@@ -1,33 +1,48 @@
+import os
+import shutil
 import requests
-from settings import ID
-from table import save_to_mysql
+from settings import ID, TAKE, VALUATION
+from save_photos import save_photos
+from save_as_CSV import save_csv
+from save_as_JSON import save_json
 
 
 url = "https://public-feedbacks.wildberries.ru/api/v1/summary/full"
-
 payload = {
     "imtId": ID,
-    "take": 30
+    "take": TAKE
 }
+
 response = requests.request("POST", url, json=payload)
+if response.status_code == 200:
+    try:
+        shutil.rmtree('files/')
+    except OSError as error:
+        print(f'Папка не удалена: {error}')
+    finally:
+        os.mkdir('files/')
+else:
+    print(f'Ответ от сервера: {response.status_code}')
 
 fb_details = response.json()['feedbacks']
-data = []
+
+count_id = 1
 for i in fb_details:
-    print(name := i['wbUserDetails']['name'])
-    data.append(name)
-    print(date := i['createdDate'][:10])
-    data.append(name)
-    print(text := i['text'])
-    data.append(text)
-    print(val := i['productValuation'])
+    name = i['wbUserDetails']['name']
+    date = i['createdDate'][:10]
+    text = i['text']
+    val = i['productValuation']
     photos = i['photos']
-    if photos:
-        for j in photos:
-            print(j['fullSizeUri'])
-            print(j['minSizeUri'])
-    print(i['answer']['text'])
-    print(i)
-    print('---------------------')
+    count = 1
+    answer = i['answer']['text']
+    if val in VALUATION:
+        save_csv(count_id, name, date, text, val, answer)
+        save_json(count_id, name, date, text, val, answer)
+        if photos:
+            for j in photos:
+                save_photos(count_id, j["fullSizeUri"], count)
+                save_photos(count_id, j["minSizeUri"], count, 'min')
+                count += 1
+        count_id += 1
 
-
+print('Done')
