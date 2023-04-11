@@ -16,7 +16,11 @@ payload = {
 response = requests.request("POST", url, json=payload)
 if response.status_code == 200:
     try:
-        shutil.rmtree('files/')
+        if os.name == 'nt':
+            os.system('rd /s /q files')
+        else:
+            os.system('rm -rf files/')
+
     except OSError as error:
         print(f'Папка не удалена: {error}')
     finally:
