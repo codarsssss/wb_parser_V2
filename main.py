@@ -1,5 +1,4 @@
 import os
-import shutil
 import requests
 from settings import ID, TAKE, VALUATION
 from save_photos import save_photos
@@ -22,11 +21,11 @@ if response.status_code == 200:
             os.system('rm -rf files/')
 
     except OSError as error:
-        print(f'Папка не удалена: {error}')
+        print(f"Dir doesn't del {error}")
     finally:
         os.mkdir('files/')
 else:
-    print(f'Ответ от сервера: {response.status_code}')
+    print(f'Server answer: {response.status_code}')
 
 fb_details = response.json()['feedbacks']
 
